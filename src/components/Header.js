@@ -22,6 +22,11 @@ const Header = () => {
         <div className='text-gray-700 flex items-center space-x-4'>
           {user ? (
             <>
+              <Link to={ROUTES.SEARCH}>
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 mr-4 text-black-light">
+                  <path fillRule="evenodd" d="M10.5 3.75a6.75 6.75 0 104.216 12.033l3.75 3.75a.75.75 0 101.06-1.06l-3.75-3.75A6.75 6.75 0 0010.5 3.75zm-5.25 6.75a5.25 5.25 0 1110.5 0 5.25 5.25 0 01-10.5 0z" clipRule="evenodd" />
+                </svg>
+              </Link>
               <Link to={ROUTES.DASHBOARD}>
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="w-8 mr-6 text-black-light">
                   <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />

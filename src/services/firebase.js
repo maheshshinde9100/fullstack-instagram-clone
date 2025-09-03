@@ -135,14 +135,10 @@ export async function isUserFollowingProfile(
   const result = await firebase
     .firestore()
     .collection("users")
-    .where("username", "==", "loggedInUserUsername")
+    .where("username", "==", loggedInUserUsername)
     .where("following", "array-contains", profileUserId)
     .get();
-  const [response = {}] = result.docs.map((item) => ({
-    ...item.data(),
-    docId: item.id,
-  }));
-  return response.userId;
+  return result.docs.length > 0;
 }
 export async function toggleFollow(
   isFollowingProfile,
