@@ -2,6 +2,7 @@
 import Firebase from 'firebase/compat/app';
 import 'firebase/compat/firestore';
 import 'firebase/compat/auth';
+import 'firebase/compat/storage';
 const config = {
     apiKey: "AIzaSyCEjLHqLpW5Prv-5zhb33RUhz6Z1RwrhXc",
     authDomain: "instagram-3a3d7.firebaseapp.com",

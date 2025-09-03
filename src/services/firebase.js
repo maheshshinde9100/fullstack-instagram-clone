@@ -158,3 +158,18 @@ export async function toggleFollow(
     isFollowingProfile
   );
 }
+
+export async function uploadPhoto(file, userId) {
+  const storage = firebase.storage();
+  const storageRef = storage.ref();
+  const photoRef = storageRef.child(`photos/${userId}/${Date.now()}-${file.name}`);
+  
+  const uploadTask = await photoRef.put(file);
+  const downloadURL = await uploadTask.ref.getDownloadURL();
+  
+  return downloadURL;
+}
+
+export async function addPhotoToFirestore(photoData) {
+  return firebase.firestore().collection('photos').add(photoData);
+}

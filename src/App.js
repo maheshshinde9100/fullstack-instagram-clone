@@ -13,6 +13,7 @@ const NotFound = lazy(() => import('./pages/NotFound'));
 const Dashboard = lazy(()=> import('./pages/Dashboard'));
 const Profile = lazy(()=> import('./pages/profile'));
 const Search = lazy(()=> import('./pages/Search'));
+const Upload = lazy(()=> import('./pages/Upload'));
 
 function App() {
     const user = useAuthListener();
@@ -56,6 +57,14 @@ function App() {
               element={
                 <ProtectedRoute user={user}>
                   <Search />
+                </ProtectedRoute>
+              }
+              />
+              <Route
+              path={ROUTES.UPLOAD}
+              element={
+                <ProtectedRoute user={user}>
+                  <Upload />
                 </ProtectedRoute>
               }
               />
