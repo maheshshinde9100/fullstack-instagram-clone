@@ -2,14 +2,18 @@ import React, { useState, useContext } from "react";
 import PropTypes from "prop-types";
 import FirebaseContext from "../../context/firebase";
 import UserContext from "../../context/user";
+import useUser from "../../hooks/use-user";
+import { toggleSavePhoto } from "../../services/firebase";
 
-const Actions = ({ docId, totalLikes, likedPhoto, handleFocus }) => {
+const Actions = ({ docId, totalLikes, likedPhoto, savedPhoto = false, handleFocus }) => {
   const {
     user: { uid: userId = "" },
   } = useContext(UserContext);
   const [toggleLiked, setToggleLiked] = useState(likedPhoto);
   const [likes, setLikes] = useState(totalLikes);
   const { firebase, FieldValue } = useContext(FirebaseContext);
+  const { user: loggedInUser = {} } = useUser();
+  const [isSaved, setIsSaved] = useState(savedPhoto);
 
   const handleToggleLiked = async () => {
     setToggleLiked((toggleLiked) => !toggleLiked);
@@ -23,6 +27,18 @@ const Actions = ({ docId, totalLikes, likedPhoto, handleFocus }) => {
           : FieldValue.arrayUnion(userId),
       });
     setLikes((likes) => (toggleLiked ? likes - 1 : likes + 1));
+  };
+
+  const handleToggleSaved = async () => {
+    if (!loggedInUser?.docId) return;
+    const current = isSaved;
+    setIsSaved(!current);
+    try {
+      await toggleSavePhoto(loggedInUser.docId, docId, current);
+    } catch (e) {
+      // revert on error
+      setIsSaved(current);
+    }
   };
 
   return (
@@ -69,6 +85,30 @@ const Actions = ({ docId, totalLikes, likedPhoto, handleFocus }) => {
               stroke-linecap='round'
               stroke-linejoin='round'
               d='M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.068.157 2.148.279 3.238.364.466.037.893.281 1.153.671L12 21l2.652-3.978c.26-.39.687-.634 1.153-.67 1.09-.086 2.17-.208 3.238-.365 1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z'
+            />
+          </svg>
+        </div>
+        <div className='flex'>
+          <svg
+            className={`w-8 ml-2 select-none cursor-pointer ${
+              isSaved ? "fill-black text-black" : "text-black-light"
+            }`}
+            onClick={handleToggleSaved}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                handleToggleSaved();
+              }
+            }}
+            xmlns='http://www.w3.org/2000/svg'
+            fill='none'
+            viewBox='0 0 24 24'
+            strokeWidth='1.5'
+            stroke='currentColor'
+          >
+            <path
+              strokeLinecap='round'
+              strokeLinejoin='round'
+              d='M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21l-7.5-3.75L4.5 21V5.507c0-1.108.807-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z'
             />
           </svg>
         </div>

@@ -18,6 +18,7 @@ export default function Post({ content }) {
         docId={content.docId}
         totalLikes={content.likes.length}
         likedPhoto={content.userLikedPhoto}
+        savedPhoto={content.userSavedPhoto}
         handleFocus={handleFocus}
       />
        

@@ -104,7 +104,7 @@ export async function updateFollowedUserFollowers(
     });
 }
 
-export async function getPhotos(userId, following) {
+export async function getPhotos(userId, following, savedPhotoDocIds = []) {
   const result = await firebase
     .firestore()
     .collection("photos")
@@ -122,7 +122,8 @@ export async function getPhotos(userId, following) {
       }
       const user = await getUserByUserId(photo.userId);
       const { username } = user[0];
-      return { username, ...photo, userLikedPhoto };
+      const userSavedPhoto = savedPhotoDocIds.includes(photo.docId);
+      return { username, ...photo, userLikedPhoto, userSavedPhoto };
     })
   );
   return photosWithUserDetails;
@@ -157,6 +158,22 @@ export async function toggleFollow(
     followingUserId,
     isFollowingProfile
   );
+}
+
+export async function toggleSavePhoto(
+  userDocId,
+  photoDocId,
+  isCurrentlySaved
+) {
+  return firebase
+    .firestore()
+    .collection('users')
+    .doc(userDocId)
+    .update({
+      saved: isCurrentlySaved
+        ? FieldValue.arrayRemove(photoDocId)
+        : FieldValue.arrayUnion(photoDocId),
+    });
 }
 
 export async function uploadPhoto(file, userId) {
