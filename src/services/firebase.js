@@ -176,6 +176,25 @@ export async function toggleSavePhoto(
     });
 }
 
+export async function updateUserProfile(userDocId, updates) {
+  return firebase
+    .firestore()
+    .collection('users')
+    .doc(userDocId)
+    .update(updates);
+}
+
+export async function uploadAvatar(file, userId) {
+  const storage = firebase.storage();
+  const storageRef = storage.ref();
+  const avatarRef = storageRef.child(`avatars/${userId}/${Date.now()}-${file.name}`);
+  
+  const uploadTask = await avatarRef.put(file);
+  const downloadURL = await uploadTask.ref.getDownloadURL();
+  
+  return downloadURL;
+}
+
 export async function uploadPhoto(file, userId) {
   const storage = firebase.storage();
   const storageRef = storage.ref();

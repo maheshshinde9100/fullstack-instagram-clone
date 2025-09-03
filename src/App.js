@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react';
 import * as ROUTES from "./constants/routes";
 import useAuthListener from './hooks/use-auth-listener';
 import UserContext from './context/user';
+import { DarkModeProvider } from './context/dark-mode';
 
 import ProtectedRoute from './helpers/protected-routes';
 import IsUserLoggedIn from './helpers/is-user-logged-in';
@@ -14,15 +15,17 @@ const Dashboard = lazy(()=> import('./pages/Dashboard'));
 const Profile = lazy(()=> import('./pages/profile'));
 const Search = lazy(()=> import('./pages/Search'));
 const Upload = lazy(()=> import('./pages/Upload'));
+const EditProfile = lazy(()=> import('./pages/EditProfile'));
 
 function App() {
     const user = useAuthListener();
 
     return (
-        <UserContext.Provider value={{ user }}>
-            <Router>
-                <Suspense fallback={<p>Loading...</p>}>
-                    <Routes>
+        <DarkModeProvider>
+            <UserContext.Provider value={{ user }}>
+                <Router>
+                    <Suspense fallback={<p>Loading...</p>}>
+                        <Routes>
                         {/* <Route path={ROUTES.LOGIN} element={<Login />} />
                         <Route path={ROUTES.SIGN_UP} element={<Signup />} />
                         <Route path={ROUTES.DASHBOARD} element={<Dashboard />} /> */}
@@ -69,13 +72,22 @@ function App() {
               }
               />
               <Route
+              path={ROUTES.EDIT_PROFILE}
+              element={
+                <ProtectedRoute user={user}>
+                  <EditProfile />
+                </ProtectedRoute>
+              }
+              />
+              <Route
               path={ROUTES.PROFILE} element={<Profile/>}
               />
                         <Route path='*' element={<NotFound />} />
-                    </Routes>
-                </Suspense>
-            </Router>
-        </UserContext.Provider>
+                        </Routes>
+                    </Suspense>
+                </Router>
+            </UserContext.Provider>
+        </DarkModeProvider>
     );
 
 }

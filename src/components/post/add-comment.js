@@ -24,7 +24,7 @@ const AddComment = ({ docId, comments, setComments, commentInput }) => {
   };
 
   return (
-    <div className='border-t border-gray-primary'>
+    <div className='border-t border-gray-primary dark:border-gray-600'>
       <form
         className='flex justify-between pl-0 pr-5'
         method='POST'
@@ -37,7 +37,7 @@ const AddComment = ({ docId, comments, setComments, commentInput }) => {
         <input
           aria-label='Add Comment'
           autoComplete='off'
-          className='text-sm text-gray-base w-full mr-3 py-5 px-4'
+          className='text-sm text-gray-base dark:text-gray-100 bg-transparent w-full mr-3 py-5 px-4 placeholder-gray-500 dark:placeholder-gray-400'
           type='text'
           name='add-comment'
           placeholder='Add a comment...'
@@ -46,7 +46,7 @@ const AddComment = ({ docId, comments, setComments, commentInput }) => {
           ref={commentInput}
         />
         <button
-          className={`text-sm font-bold text-blue-medium ${
+          className={`text-sm font-bold text-blue-medium dark:text-blue-400 ${
             !comment && "opacity-25"
           }`}
           type='button'

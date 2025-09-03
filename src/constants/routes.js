@@ -5,4 +5,5 @@ export const PROFILE = "/p/:username";
 export const NOT_FOUND = "/not-found";
 export const SEARCH = "/search";
 export const UPLOAD = "/upload";
+export const EDIT_PROFILE = "/accounts/edit";
 

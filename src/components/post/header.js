@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 
 const Header = ({ username }) => {
   return (
-    <div className='flex border-b border-gray-primary h-4 p-4 py-8'>
+    <div className='flex border-b border-gray-primary dark:border-gray-600 h-4 p-4 py-8'>
       <div className='flex items-center'>
         <Link to={`/p/${username}`} className='flex items-center'>
           <img
@@ -12,7 +12,7 @@ const Header = ({ username }) => {
             src={`/images/avatars/${username}.jpg`}
             alt={`${username} profile pic`}
           />
-          <p className='font-bold'>{username}</p>
+          <p className='font-bold text-gray-900 dark:text-gray-100'>{username}</p>
         </Link>
       </div>
     </div>

@@ -10,19 +10,19 @@ const Comments = ({ docId, comments: allComments, posted, commentInput }) => {
     <>
       <div className='p-4 pt-1 pb-4'>
         {comments.length >= 3 && (
-          <p className='text-sm text-gray-base mb-1 cursor-pointer'>
+          <p className='text-sm text-gray-base dark:text-gray-400 mb-1 cursor-pointer'>
             View all {comments.length}
           </p>
         )}
         {comments.slice(0, 3).map((item) => (
           <p key={`${item.comment} - ${item.displayName}`} className='mb-1'>
             <Link to={`/p/${item.displayName}`}>
-              <span className='mr-1 font-bold'>{item.displayName}</span>
-              <span>{item.comment}</span>
+              <span className='mr-1 font-bold text-gray-900 dark:text-gray-100'>{item.displayName}</span>
+              <span className='text-gray-900 dark:text-gray-100'>{item.comment}</span>
             </Link>
           </p>
         ))}
-        <p className='text-gray-base uppercase text-xs mt-2'>
+        <p className='text-gray-base dark:text-gray-400 uppercase text-xs mt-2'>
           {formatDistance(posted, new Date())} ago
         </p>
       </div>

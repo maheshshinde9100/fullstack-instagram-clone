@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useContext } from "react";
 import PropTypes from "prop-types";
 import Skeleton from "react-loading-skeleton";
+import { Link } from "react-router-dom";
 import useUser from "../../hooks/use-user";
 import UserContext from "../../context/user";
 import { isUserFollowingProfile, toggleFollow } from "../../services/firebase";
 import { DEFAULT_IMAGE_PATH } from "../../constants/paths";
+import * as ROUTES from "../../constants/routes";
 
 const Header = ({
   photosCount,
@@ -12,6 +14,7 @@ const Header = ({
     docId: profileDocId,
     userId: profileUserId,
     fullName,
+    bio,
     followers,
     following,
     username: profileUsername,
@@ -23,6 +26,7 @@ const Header = ({
   const { user } = useUser(loggedInUser?.uid);
   const [isFollowingProfile, setIsFollowingProfile] = useState(false);
   const activeBtnFollow = user?.username && user?.username !== profileUsername;
+  const isOwnProfile = user?.username === profileUsername;
 
   const handleToggleFollow = async () => {
     setIsFollowingProfile((isFollowingProfile) => !isFollowingProfile);
@@ -68,7 +72,14 @@ const Header = ({
       <div className='flex items-center jsutify-center flex-col col-span-2'>
         <div className='container flex items-center'>
           <p className='text-2xl mr-4'>{profileUsername}</p>
-          {activeBtnFollow && isFollowingProfile === null ? (
+          {isOwnProfile ? (
+            <Link
+              to={ROUTES.EDIT_PROFILE}
+              className='bg-gray-200 font-bold text-sm rounded text-gray-700 px-4 py-2 hover:bg-gray-300'
+            >
+              Edit Profile
+            </Link>
+          ) : activeBtnFollow && isFollowingProfile === null ? (
             <Skeleton count={1} width={80} height={32} />
           ) : (
             activeBtnFollow && (
@@ -108,6 +119,11 @@ const Header = ({
           <p className='font-medium'>
             {!fullName ? <Skeleton count={1} height={24} /> : fullName}
           </p>
+          {bio && (
+            <p className='mt-2 text-sm'>
+              {bio}
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -124,6 +140,7 @@ Header.propTypes = {
     docId: PropTypes.string,
     userId: PropTypes.string,
     fullName: PropTypes.string,
+    bio: PropTypes.string,
     username: PropTypes.string,
     followers: PropTypes.string,
     following: PropTypes.string,

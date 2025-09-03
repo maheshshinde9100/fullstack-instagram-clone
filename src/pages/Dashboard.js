@@ -9,7 +9,7 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className='bg-gray-background min-h-screen'>
+    <div className='bg-gray-background dark:bg-gray-900 min-h-screen'>
       {/* Header with Logo, Home, Logout, and Profile icons */}
       <Header />
       

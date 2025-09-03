@@ -47,7 +47,7 @@ const Actions = ({ docId, totalLikes, likedPhoto, savedPhoto = false, handleFocu
         <div className='flex'>
           <svg
             className={`w-8 mr-4 select-none cursor-pointer ${
-              toggleLiked ? "fill-red text-red-primary" : "text-black-light"
+              toggleLiked ? "fill-red text-red-primary" : "text-black-light dark:text-gray-300"
             }`}
             onClick={handleToggleLiked}
             onKeyDown={(event) => {
@@ -74,7 +74,7 @@ const Actions = ({ docId, totalLikes, likedPhoto, savedPhoto = false, handleFocu
                 handleFocus();
               }
             }}
-            className='w-8 text-black-light select-none cursor-pointer'
+            className='w-8 text-black-light dark:text-gray-300 select-none cursor-pointer'
             xmlns='http://www.w3.org/2000/svg'
             fill='none'
             viewBox='0 0 24 24'
@@ -91,7 +91,7 @@ const Actions = ({ docId, totalLikes, likedPhoto, savedPhoto = false, handleFocu
         <div className='flex'>
           <svg
             className={`w-8 ml-2 select-none cursor-pointer ${
-              isSaved ? "fill-black text-black" : "text-black-light"
+              isSaved ? "fill-black text-black dark:fill-white dark:text-white" : "text-black-light dark:text-gray-300"
             }`}
             onClick={handleToggleSaved}
             onKeyDown={(event) => {
@@ -114,7 +114,7 @@ const Actions = ({ docId, totalLikes, likedPhoto, savedPhoto = false, handleFocu
         </div>
       </div>
       <div className='p-4 py-0'>
-        <p className='font-bold'>
+        <p className='font-bold text-gray-900 dark:text-gray-100'>
           {likes === 1 ? `${likes} like` : `${likes} likes`}
         </p>
       </div>
