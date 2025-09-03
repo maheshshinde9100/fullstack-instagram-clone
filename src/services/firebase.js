@@ -104,16 +104,24 @@ export async function updateFollowedUserFollowers(
     });
 }
 
-export async function getPhotos(userId, following, savedPhotoDocIds = []) {
-  const result = await firebase
+export async function getPhotos(userId, following, savedPhotoDocIds = [], lastDoc = null, limit = 10) {
+  let query = firebase
     .firestore()
     .collection("photos")
     .where("userId", "in", following)
-    .get();
+    .orderBy("dateCreated", "desc")
+    .limit(limit);
+
+  if (lastDoc) {
+    query = query.startAfter(lastDoc);
+  }
+
+  const result = await query.get();
   const userFollowedPhotos = result.docs.map((photo) => ({
     ...photo.data(),
     docId: photo.id,
   }));
+  
   const photosWithUserDetails = await Promise.all(
     userFollowedPhotos.map(async (photo) => {
       let userLikedPhoto = false;
@@ -126,7 +134,12 @@ export async function getPhotos(userId, following, savedPhotoDocIds = []) {
       return { username, ...photo, userLikedPhoto, userSavedPhoto };
     })
   );
-  return photosWithUserDetails;
+  
+  return {
+    photos: photosWithUserDetails,
+    lastDoc: result.docs[result.docs.length - 1],
+    hasMore: result.docs.length === limit
+  };
 }
 
 export async function isUserFollowingProfile(
