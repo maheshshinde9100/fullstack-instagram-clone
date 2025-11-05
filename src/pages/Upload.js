@@ -69,7 +69,15 @@ const Upload = () => {
       navigate(ROUTES.DASHBOARD);
     } catch (error) {
       console.error('Upload error:', error);
-      setError('Failed to upload photo. Please try again.');
+      if (error.message.includes('storage')) {
+        setError('Storage error: Please check Firebase Storage configuration.');
+      } else if (error.message.includes('permission')) {
+        setError('Permission denied: Please check Firebase Storage rules.');
+      } else if (error.message.includes('size')) {
+        setError(error.message);
+      } else {
+        setError(`Upload failed: ${error.message || 'Please try again.'}`);
+      }
     } finally {
       setUploading(false);
     }

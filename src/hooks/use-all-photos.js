@@ -1,10 +1,8 @@
 import { useState, useEffect, useContext, useCallback } from "react";
-
 import UserContext from "../context/user";
+import { getAllPhotos } from "../services/firebase";
 
-import { getUserByUserId, getPhotos } from "../services/firebase";
-
-const usePhotos = () => {
+const useAllPhotos = () => {
   const [photos, setPhotos] = useState(null);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
@@ -18,31 +16,7 @@ const usePhotos = () => {
     
     setLoading(true);
     try {
-      const userResult = await getUserByUserId(userId);
-      
-      if (!userResult || userResult.length === 0) {
-        setPhotos([]);
-        setHasMore(false);
-        setLoading(false);
-        return;
-      }
-
-      const [{ following = [], saved = [] }] = userResult;
-      
-      if (following.length === 0) {
-        setPhotos([]);
-        setHasMore(false);
-        setLoading(false);
-        return;
-      }
-
-      const result = await getPhotos(
-        userId, 
-        following, 
-        saved, 
-        isLoadMore ? lastDoc : null,
-        10
-      );
+      const result = await getAllPhotos(userId, 10);
 
       if (isLoadMore) {
         setPhotos(prev => [...(prev || []), ...result.photos]);
@@ -53,7 +27,7 @@ const usePhotos = () => {
       setLastDoc(result.lastDoc);
       setHasMore(result.hasMore);
     } catch (error) {
-      console.error('Error loading photos:', error);
+      console.error('Error loading all photos:', error);
       setPhotos([]);
       setHasMore(false);
     } finally {
@@ -76,4 +50,4 @@ const usePhotos = () => {
   return { photos, loading, hasMore, loadMore };
 };
 
-export default usePhotos;
+export default useAllPhotos;

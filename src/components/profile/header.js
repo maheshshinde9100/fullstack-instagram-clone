@@ -18,6 +18,7 @@ const Header = ({
     followers,
     following,
     username: profileUsername,
+    avatarUrl,
   },
   followerCount,
   setFollowerCount,
@@ -60,9 +61,9 @@ const Header = ({
       <div className='container flex justify-center items-center'>
         {profileUsername ? (
           <img
-            className='rounded-full h-40 w-40 flex'
+            className='rounded-full h-40 w-40 flex object-cover'
             alt={`${fullName} profile pic`}
-            src={`/images/avatars/${profileUsername}.jpg`}
+            src={avatarUrl || `/images/avatars/${profileUsername}.jpg`}
             onError={(e) => (e.target.src = DEFAULT_IMAGE_PATH)}
           />
         ) : (

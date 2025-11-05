@@ -16,6 +16,7 @@ const Profile = lazy(()=> import('./pages/profile'));
 const Search = lazy(()=> import('./pages/Search'));
 const Upload = lazy(()=> import('./pages/Upload'));
 const EditProfile = lazy(()=> import('./pages/EditProfile'));
+const AllUsers = lazy(()=> import('./pages/AllUsers'));
 
 function App() {
     const user = useAuthListener();
@@ -76,6 +77,14 @@ function App() {
               element={
                 <ProtectedRoute user={user}>
                   <EditProfile />
+                </ProtectedRoute>
+              }
+              />
+              <Route
+              path={ROUTES.ALL_USERS}
+              element={
+                <ProtectedRoute user={user}>
+                  <AllUsers />
                 </ProtectedRoute>
               }
               />

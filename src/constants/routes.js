@@ -6,4 +6,5 @@ export const NOT_FOUND = "/not-found";
 export const SEARCH = "/search";
 export const UPLOAD = "/upload";
 export const EDIT_PROFILE = "/accounts/edit";
+export const ALL_USERS = "/users";
 

@@ -1,11 +1,11 @@
 import React from 'react'
 import Skeleton from 'react-loading-skeleton';
-import usePhotos from '../hooks/use-photos';
+import useAllPhotos from '../hooks/use-all-photos';
 import useInfiniteScroll from '../hooks/use-infinite-scroll';
 import Post from './post';
 
 const Timeline = () => {
-  const { photos, loading, hasMore, loadMore } = usePhotos();
+  const { photos, loading, hasMore, loadMore } = useAllPhotos();
   
   useInfiniteScroll(loadMore, hasMore, loading);
 
@@ -30,7 +30,7 @@ const Timeline = () => {
         </>
       ): (
         <p className='text-center text-2xl text-gray-500 dark:text-gray-400'>
-          Follow people to see the photos
+          No photos to display
         </p>
       )}
     </div>

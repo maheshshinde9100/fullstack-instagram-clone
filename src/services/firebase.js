@@ -15,14 +15,13 @@ export async function getUserByUserId(userId){
   return user;
 }
 
-export async function getSuggestedProfiles(userId,following){
-  const result = await firebase.firestore().collection("users").limit(10).get();
-  const user =  result.docs.map((item)=>({
+export async function getSuggestedProfiles(userId, following = []){
+  const result = await firebase.firestore().collection("users").limit(50).get();
+  const users = result.docs.map((item)=>({
     ...item.data(),
     docId: item.id
-  })).filter((profile) => profile.userId !== userId && !following.includes(profile.userId)  
-);
-  return user;
+  })).filter((profile) => profile.userId !== userId && !following.includes(profile.userId));
+  return users;
 }
 
 export async function getUserByUsername(username) {
@@ -105,6 +104,14 @@ export async function updateFollowedUserFollowers(
 }
 
 export async function getPhotos(userId, following, savedPhotoDocIds = [], lastDoc = null, limit = 10) {
+  if (!following || following.length === 0) {
+    return {
+      photos: [],
+      lastDoc: null,
+      hasMore: false
+    };
+  }
+
   let query = firebase
     .firestore()
     .collection("photos")
@@ -129,14 +136,19 @@ export async function getPhotos(userId, following, savedPhotoDocIds = [], lastDo
         userLikedPhoto = true;
       }
       const user = await getUserByUserId(photo.userId);
+      if (!user || user.length === 0) {
+        return null;
+      }
       const { username } = user[0];
       const userSavedPhoto = savedPhotoDocIds.includes(photo.docId);
       return { username, ...photo, userLikedPhoto, userSavedPhoto };
     })
   );
   
+  const validPhotos = photosWithUserDetails.filter(photo => photo !== null);
+  
   return {
-    photos: photosWithUserDetails,
+    photos: validPhotos,
     lastDoc: result.docs[result.docs.length - 1],
     hasMore: result.docs.length === limit
   };
@@ -198,27 +210,111 @@ export async function updateUserProfile(userDocId, updates) {
 }
 
 export async function uploadAvatar(file, userId) {
-  const storage = firebase.storage();
-  const storageRef = storage.ref();
-  const avatarRef = storageRef.child(`avatars/${userId}/${Date.now()}-${file.name}`);
-  
-  const uploadTask = await avatarRef.put(file);
-  const downloadURL = await uploadTask.ref.getDownloadURL();
-  
-  return downloadURL;
+  try {
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error('File size must be less than 5MB');
+    }
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      throw new Error('File must be an image');
+    }
+    
+    const storage = firebase.storage();
+    const storageRef = storage.ref();
+    const avatarRef = storageRef.child(`avatars/${userId}/${Date.now()}-${file.name}`);
+    
+    console.log('Uploading avatar to:', `avatars/${userId}/${Date.now()}-${file.name}`);
+    
+    const uploadTask = await avatarRef.put(file);
+    const downloadURL = await uploadTask.ref.getDownloadURL();
+    
+    console.log('Avatar uploaded successfully:', downloadURL);
+    return downloadURL;
+  } catch (error) {
+    console.error('Avatar upload error:', error);
+    throw error;
+  }
 }
 
 export async function uploadPhoto(file, userId) {
-  const storage = firebase.storage();
-  const storageRef = storage.ref();
-  const photoRef = storageRef.child(`photos/${userId}/${Date.now()}-${file.name}`);
-  
-  const uploadTask = await photoRef.put(file);
-  const downloadURL = await uploadTask.ref.getDownloadURL();
-  
-  return downloadURL;
+  try {
+    // Validate file size (max 10MB for posts)
+    if (file.size > 10 * 1024 * 1024) {
+      throw new Error('File size must be less than 10MB');
+    }
+    
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      throw new Error('File must be an image');
+    }
+    
+    const storage = firebase.storage();
+    const storageRef = storage.ref();
+    const photoRef = storageRef.child(`photos/${userId}/${Date.now()}-${file.name}`);
+    
+    console.log('Uploading photo to:', `photos/${userId}/${Date.now()}-${file.name}`);
+    
+    const uploadTask = await photoRef.put(file);
+    const downloadURL = await uploadTask.ref.getDownloadURL();
+    
+    console.log('Photo uploaded successfully:', downloadURL);
+    return downloadURL;
+  } catch (error) {
+    console.error('Photo upload error:', error);
+    throw error;
+  }
 }
 
 export async function addPhotoToFirestore(photoData) {
   return firebase.firestore().collection('photos').add(photoData);
 }
+
+export async function deleteComment(photoDocId, commentToDelete) {
+  return firebase
+    .firestore()
+    .collection('photos')
+    .doc(photoDocId)
+    .update({
+      comments: FieldValue.arrayRemove(commentToDelete)
+    });
+}
+
+export async function getAllPhotos(userId, limit = 10) {
+  const result = await firebase
+    .firestore()
+    .collection("photos")
+    .orderBy("dateCreated", "desc")
+    .limit(limit)
+    .get();
+  
+  const allPhotos = result.docs.map((photo) => ({
+    ...photo.data(),
+    docId: photo.id,
+  }));
+  
+  const photosWithUserDetails = await Promise.all(
+    allPhotos.map(async (photo) => {
+      let userLikedPhoto = false;
+      if (photo.likes.includes(userId)) {
+        userLikedPhoto = true;
+      }
+      const user = await getUserByUserId(photo.userId);
+      if (!user || user.length === 0) {
+        return null;
+      }
+      const { username } = user[0];
+      return { username, ...photo, userLikedPhoto, userSavedPhoto: false };
+    })
+  );
+  
+  const validPhotos = photosWithUserDetails.filter(photo => photo !== null);
+  
+  return {
+    photos: validPhotos,
+    lastDoc: result.docs[result.docs.length - 1],
+    hasMore: result.docs.length === limit
+  };
+}
+

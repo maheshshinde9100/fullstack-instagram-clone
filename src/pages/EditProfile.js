@@ -69,7 +69,15 @@ const EditProfile = () => {
       }, 1500);
     } catch (error) {
       console.error('Update error:', error);
-      setError('Failed to update profile. Please try again.');
+      if (error.message.includes('storage')) {
+        setError('Storage error: Please check Firebase Storage configuration.');
+      } else if (error.message.includes('permission')) {
+        setError('Permission denied: Please check Firebase Storage rules.');
+      } else if (error.message.includes('size')) {
+        setError(error.message);
+      } else {
+        setError(`Update failed: ${error.message || 'Please try again.'}`);
+      }
     } finally {
       setLoading(false);
     }
