@@ -1,5 +1,38 @@
 import { FieldValue, firebase } from '../lib/firebase';
 
+const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_UPLOAD_PRESET_AVATAR = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET_AVATAR;
+const CLOUDINARY_UPLOAD_PRESET_PHOTO = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET_PHOTO;
+const CLOUDINARY_UPLOAD_PRESET_STORY = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET_STORY;
+
+async function uploadToCloudinary(file, folder, uploadPreset) {
+  if (!CLOUDINARY_CLOUD_NAME || !uploadPreset) {
+    throw new Error('Cloudinary is not configured. Please set REACT_APP_CLOUDINARY_* env variables.');
+  }
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('upload_preset', uploadPreset);
+  if (folder) {
+    formData.append('folder', folder);
+  }
+
+  const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`;
+
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text().catch(() => '');
+    throw new Error(`Cloudinary upload failed (${response.status}): ${errorText}`);
+  }
+
+  const data = await response.json();
+  return data.secure_url || data.url;
+}
+
 export async function doesUsernameExist(username) {
   const result = await firebase.firestore().collection('users').where('username', '==', username).get();
   return result.docs.length > 0;
@@ -216,22 +249,13 @@ export async function uploadAvatar(file, userId) {
       throw new Error('File size must be less than 5MB');
     }
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       throw new Error('File must be an image');
     }
 
-    const storage = firebase.storage();
-    const storageRef = storage.ref();
-    const avatarRef = storageRef.child(`avatars/${userId}/${Date.now()}-${file.name}`);
-
-
-
-    const uploadTask = await avatarRef.put(file);
-    const downloadURL = await uploadTask.ref.getDownloadURL();
-
-
-    return downloadURL;
+    const folder = `avatars/${userId}`;
+    const url = await uploadToCloudinary(file, folder, CLOUDINARY_UPLOAD_PRESET_AVATAR);
+    return url;
   } catch (error) {
     console.error('Avatar upload error:', error);
     throw error;
@@ -245,22 +269,13 @@ export async function uploadPhoto(file, userId) {
       throw new Error('File size must be less than 10MB');
     }
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       throw new Error('File must be an image');
     }
 
-    const storage = firebase.storage();
-    const storageRef = storage.ref();
-    const photoRef = storageRef.child(`photos/${userId}/${Date.now()}-${file.name}`);
-
-
-
-    const uploadTask = await photoRef.put(file);
-    const downloadURL = await uploadTask.ref.getDownloadURL();
-
-
-    return downloadURL;
+    const folder = `photos/${userId}`;
+    const url = await uploadToCloudinary(file, folder, CLOUDINARY_UPLOAD_PRESET_PHOTO);
+    return url;
   } catch (error) {
     console.error('Photo upload error:', error);
     throw error;
@@ -316,5 +331,64 @@ export async function getAllPhotos(userId, limit = 10) {
     lastDoc: result.docs[result.docs.length - 1],
     hasMore: result.docs.length === limit
   };
+}
+
+// STORIES
+
+export async function uploadStory(file, userId) {
+  try {
+    // Validate file size (max 5MB for stories)
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error('Story image must be less than 5MB');
+    }
+
+    if (!file.type.startsWith('image/')) {
+      throw new Error('Story must be an image');
+    }
+
+    const folder = `stories/${userId}`;
+    const url = await uploadToCloudinary(file, folder, CLOUDINARY_UPLOAD_PRESET_STORY);
+    return url;
+  } catch (error) {
+    console.error('Story upload error:', error);
+    throw error;
+  }
+}
+
+export async function addStoryToFirestore(storyData) {
+  return firebase.firestore().collection('stories').add(storyData);
+}
+
+export async function getStoriesForUserFeed(userId, limit = 50) {
+  // Fetch recent stories and filter by following + own user and expiry time
+  const now = Date.now();
+
+  const userResult = await getUserByUserId(userId);
+  if (!userResult || userResult.length === 0) {
+    return [];
+  }
+
+  const [{ following = [] }] = userResult;
+  const allowedUserIds = new Set([userId, ...following]);
+
+  const result = await firebase
+    .firestore()
+    .collection('stories')
+    .orderBy('createdAt', 'desc')
+    .limit(limit)
+    .get();
+
+  const stories = result.docs
+    .map((doc) => ({
+      ...doc.data(),
+      docId: doc.id,
+    }))
+    .filter((story) => {
+      const isFromAllowedUser = allowedUserIds.has(story.userId);
+      const isActive = typeof story.expiresAt === 'number' ? story.expiresAt > now : true;
+      return isFromAllowedUser && isActive;
+    });
+
+  return stories;
 }
 
