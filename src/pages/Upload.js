@@ -8,7 +8,7 @@ import * as ROUTES from '../constants/routes';
 
 const Upload = () => {
   const navigate = useNavigate();
-  const { firebase, FieldValue } = useContext(FirebaseContext);
+  const { firebase } = useContext(FirebaseContext);
   const { user } = useContext(UserContext);
   const [file, setFile] = useState(null);
   const [caption, setCaption] = useState('');
@@ -36,6 +36,11 @@ const Upload = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
+    if (!user?.uid) {
+      setError('You must be logged in to upload a photo.');
+      return;
+    }
+
     if (!file) {
       setError('Please select a photo');
       return;
