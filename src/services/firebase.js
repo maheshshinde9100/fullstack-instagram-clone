@@ -318,3 +318,67 @@ export async function getAllPhotos(userId, limit = 10) {
   };
 }
 
+// STORIES
+
+export async function uploadStory(file, userId) {
+  try {
+    // Validate file size (max 5MB for stories)
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error('Story image must be less than 5MB');
+    }
+
+    if (!file.type.startsWith('image/')) {
+      throw new Error('Story must be an image');
+    }
+
+    const storage = firebase.storage();
+    const storageRef = storage.ref();
+    const storyRef = storageRef.child(`stories/${userId}/${Date.now()}-${file.name}`);
+
+    const uploadTask = await storyRef.put(file);
+    const downloadURL = await uploadTask.ref.getDownloadURL();
+
+    return downloadURL;
+  } catch (error) {
+    console.error('Story upload error:', error);
+    throw error;
+  }
+}
+
+export async function addStoryToFirestore(storyData) {
+  return firebase.firestore().collection('stories').add(storyData);
+}
+
+export async function getStoriesForUserFeed(userId, limit = 50) {
+  // Fetch recent stories and filter by following + own user and expiry time
+  const now = Date.now();
+
+  const userResult = await getUserByUserId(userId);
+  if (!userResult || userResult.length === 0) {
+    return [];
+  }
+
+  const [{ following = [] }] = userResult;
+  const allowedUserIds = new Set([userId, ...following]);
+
+  const result = await firebase
+    .firestore()
+    .collection('stories')
+    .orderBy('createdAt', 'desc')
+    .limit(limit)
+    .get();
+
+  const stories = result.docs
+    .map((doc) => ({
+      ...doc.data(),
+      docId: doc.id,
+    }))
+    .filter((story) => {
+      const isFromAllowedUser = allowedUserIds.has(story.userId);
+      const isActive = typeof story.expiresAt === 'number' ? story.expiresAt > now : true;
+      return isFromAllowedUser && isActive;
+    });
+
+  return stories;
+}
+
