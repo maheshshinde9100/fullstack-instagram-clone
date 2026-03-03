@@ -4,10 +4,12 @@ import UserContext from '../context/user';
 import { useDarkMode } from '../context/dark-mode';
 import * as ROUTES from '../constants/routes';
 import { Link } from 'react-router-dom';
+import useUser from '../hooks/use-user';
 
 const Header = () => {
   const { firebase } = useContext(FirebaseContext);
-  const { user } = useContext(UserContext);
+  const { user: authUser } = useContext(UserContext);
+  const { user } = useUser();
   const { isDarkMode, toggleDarkMode } = useDarkMode();
 
   return (
@@ -22,7 +24,7 @@ const Header = () => {
         </div>
 
         <div className='text-gray-700 dark:text-gray-300 flex items-center space-x-4'>
-          {user ? (
+          {authUser ? (
             <>
               <Link to={ROUTES.SEARCH}>
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7 mr-4 text-black-light dark:text-gray-300">
@@ -74,11 +76,11 @@ const Header = () => {
                 </svg>
               </button>
               <div className='flex items-center cursor-pointer'>
-                <Link to={`/p/${user.displayName}`}>
-                  <img 
-                    className='rounded-full h-8 w-8 flex object-cover' 
-                    src={`/images/avatars/${user.displayName}.jpg`} 
-                    alt={`${user.displayName} profile`}
+                <Link to={`/p/${user.username}`}>
+                  <img
+                    className='rounded-full h-8 w-8 flex object-cover'
+                    src={user.avatarUrl || `/images/avatars/${user.username}.jpg`}
+                    alt={`${user.username} profile`}
                     onError={(e) => {
                       e.target.src = '/images/avatars/default.png';
                     }}
@@ -89,13 +91,13 @@ const Header = () => {
           ) : (
             <>
               <Link to={ROUTES.LOGIN}>
-              <button className='bg-blue-medium font-bold text-sm rounded text-white w-20 h-8 hover:bg-blue-600 transition-colors' type='button'>
-                Log In
-              </button>
+                <button className='bg-blue-medium font-bold text-sm rounded text-white w-20 h-8 hover:bg-blue-600 transition-colors' type='button'>
+                  Log In
+                </button>
               </Link>
               <Link to={ROUTES.SIGN_UP}>
-              <button className='font-bold text-sm rounded text-blue-medium w-20 h-8 hover:text-blue-600 transition-colors' type="button">
-                Sign Up
+                <button className='font-bold text-sm rounded text-blue-medium w-20 h-8 hover:text-blue-600 transition-colors' type="button">
+                  Sign Up
                 </button></Link>
             </>
           )}
