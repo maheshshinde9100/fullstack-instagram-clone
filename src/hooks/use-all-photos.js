@@ -6,7 +6,6 @@ const useAllPhotos = () => {
   const [photos, setPhotos] = useState(null);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [lastDoc, setLastDoc] = useState(null);
   const {
     user: { uid: userId = "" },
   } = useContext(UserContext);
@@ -24,7 +23,6 @@ const useAllPhotos = () => {
         setPhotos(result.photos);
       }
       
-      setLastDoc(result.lastDoc);
       setHasMore(result.hasMore);
     } catch (error) {
       console.error('Error loading all photos:', error);
@@ -33,7 +31,7 @@ const useAllPhotos = () => {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, loading]);
 
   useEffect(() => {
     if (userId) {

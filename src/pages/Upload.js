@@ -1,7 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import FirebaseContext from '../context/firebase';
 import UserContext from '../context/user';
 import { uploadPhoto, addPhotoToFirestore } from '../services/firebase';
 import * as ROUTES from '../constants/routes';

@@ -5,7 +5,6 @@ import UserContext from '../context/user';
 import useUser from '../hooks/use-user';
 import { updateUserProfile, uploadAvatar } from '../services/firebase';
 import { DEFAULT_IMAGE_PATH } from '../constants/paths';
-import * as ROUTES from '../constants/routes';
 
 const EditProfile = () => {
   const navigate = useNavigate();

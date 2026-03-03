@@ -7,6 +7,9 @@ const LazyPost = ({ content }) => {
     const containerRef = useRef(null);
 
     useEffect(() => {
+        const current = containerRef.current;
+        if (!current) return;
+
         const observer = new IntersectionObserver(
             ([entry]) => {
                 if (entry.isIntersecting) {
@@ -15,18 +18,14 @@ const LazyPost = ({ content }) => {
                 }
             },
             {
-                rootMargin: '200px', // Start loading 200px before it enters the viewport
+                rootMargin: '200px',
             }
         );
 
-        if (containerRef.current) {
-            observer.observe(containerRef.current);
-        }
+        observer.observe(current);
 
         return () => {
-            if (containerRef.current) {
-                observer.unobserve(containerRef.current);
-            }
+            observer.unobserve(current);
         };
     }, []);
 
