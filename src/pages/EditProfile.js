@@ -22,7 +22,7 @@ const EditProfile = () => {
   useEffect(() => {
     document.title = 'Edit Profile - Instagram';
     
-    if (userData) {
+    if (userData && userData.username) {
       setFullName(userData.fullName || '');
       setBio(userData.bio || '');
       setAvatarPreview(`/images/avatars/${userData.username}.jpg`);
@@ -83,7 +83,7 @@ const EditProfile = () => {
     }
   };
 
-  if (!userData) {
+  if (!userData || !userData.username) {
     return (
       <div className='bg-gray-background min-h-screen'>
         <Header />
@@ -134,7 +134,7 @@ const EditProfile = () => {
               </label>
               <input
                 type='text'
-                value={userData.username}
+                value={userData?.username || ''}
                 disabled
                 className='w-full px-3 py-2 border border-gray-primary rounded-md bg-gray-100 text-gray-500'
               />

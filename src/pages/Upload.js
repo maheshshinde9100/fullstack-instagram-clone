@@ -8,7 +8,6 @@ import * as ROUTES from '../constants/routes';
 
 const Upload = () => {
   const navigate = useNavigate();
-  const { firebase } = useContext(FirebaseContext);
   const { user } = useContext(UserContext);
   const [file, setFile] = useState(null);
   const [caption, setCaption] = useState('');
