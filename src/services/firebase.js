@@ -296,13 +296,18 @@ export async function deleteComment(photoDocId, commentToDelete) {
     });
 }
 
-export async function getAllPhotos(userId, limit = 10) {
-  const result = await firebase
+export async function getAllPhotos(userId, lastDoc = null, limit = 10) {
+  let query = firebase
     .firestore()
     .collection("photos")
     .orderBy("dateCreated", "desc")
-    .limit(limit)
-    .get();
+    .limit(limit);
+
+  if (lastDoc) {
+    query = query.startAfter(lastDoc);
+  }
+
+  const result = await query.get();
 
   const allPhotos = result.docs.map((photo) => ({
     ...photo.data(),
@@ -392,3 +397,40 @@ export async function getStoriesForUserFeed(userId, limit = 50) {
   return stories;
 }
 
+export async function getSavedPhotos(userId, savedPhotoDocIds) {
+  if (!savedPhotoDocIds || savedPhotoDocIds.length === 0) {
+    return [];
+  }
+
+  const result = await firebase
+    .firestore()
+    .collection("photos")
+    .where(firebase.firestore.FieldPath.documentId(), "in", savedPhotoDocIds)
+    .get();
+
+  const savedPhotos = result.docs.map((photo) => ({
+    ...photo.data(),
+    docId: photo.id,
+  }));
+
+  const photosWithUserDetails = await Promise.all(
+    savedPhotos.map(async (photo) => {
+      let userLikedPhoto = false;
+      if (photo.likes.includes(userId)) {
+        userLikedPhoto = true;
+      }
+      const user = await getUserByUserId(photo.userId);
+      if (!user || user.length === 0) {
+        return null;
+      }
+      const { username, avatarUrl } = user[0];
+      return { username, avatarUrl, ...photo, userLikedPhoto, userSavedPhoto: true };
+    })
+  );
+
+  return photosWithUserDetails.filter(photo => photo !== null);
+}
+
+export async function deletePhoto(photoDocId) {
+  return firebase.firestore().collection('photos').doc(photoDocId).delete();
+}

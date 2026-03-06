@@ -12,18 +12,19 @@ const useAllPhotos = () => {
   } = useContext(UserContext);
 
   const loadPhotos = useCallback(async (isLoadMore = false) => {
-    if (!userId || loading) return;
-    
+    if (!userId || loading || (isLoadMore && !hasMore)) return;
+
     setLoading(true);
     try {
-      const result = await getAllPhotos(userId, 10);
+      const currentLastDoc = isLoadMore ? lastDoc : null;
+      const result = await getAllPhotos(userId, currentLastDoc, 10);
 
       if (isLoadMore) {
         setPhotos(prev => [...(prev || []), ...result.photos]);
       } else {
         setPhotos(result.photos);
       }
-      
+
       setLastDoc(result.lastDoc);
       setHasMore(result.hasMore);
     } catch (error) {
@@ -33,19 +34,22 @@ const useAllPhotos = () => {
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, lastDoc, loading, hasMore]);
 
   useEffect(() => {
     if (userId) {
-      loadPhotos(false);
+      // Initial load only if photos is null
+      if (photos === null) {
+        loadPhotos(false);
+      }
     }
-  }, [userId, loadPhotos]);
+  }, [userId, photos, loadPhotos]);
 
-  const loadMore = useCallback(() => {
+  const loadMore = () => {
     if (hasMore && !loading) {
       loadPhotos(true);
     }
-  }, [hasMore, loading, loadPhotos]);
+  };
 
   return { photos, loading, hasMore, loadMore };
 };

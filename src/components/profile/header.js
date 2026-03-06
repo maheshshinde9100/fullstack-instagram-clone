@@ -25,7 +25,7 @@ const Header = ({
 }) => {
   const { user: loggedInUser } = useContext(UserContext);
   const { user } = useUser(loggedInUser?.uid);
-  const [isFollowingProfile, setIsFollowingProfile] = useState(false);
+  const [isFollowingProfile, setIsFollowingProfile] = useState(null);
   const activeBtnFollow = user?.username && user?.username !== profileUsername;
   const isOwnProfile = user?.username === profileUsername;
 
@@ -143,7 +143,7 @@ Header.propTypes = {
     fullName: PropTypes.string,
     bio: PropTypes.string,
     username: PropTypes.string,
-    followers: PropTypes.string,
-    following: PropTypes.string,
+    followers: PropTypes.array,
+    following: PropTypes.array,
   }).isRequired,
 };

@@ -11,7 +11,29 @@ const StoriesBar = () => {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [activeStory, setActiveStory] = useState(null);
+  const [progress, setProgress] = useState(0);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    let timer;
+    if (activeStory) {
+      setProgress(0);
+      const startTime = Date.now();
+      const duration = 5000; // 5 seconds
+
+      timer = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const currentProgress = Math.min((elapsed / duration) * 100, 100);
+        setProgress(currentProgress);
+
+        if (currentProgress >= 100) {
+          clearInterval(timer);
+          setActiveStory(null);
+        }
+      }, 100);
+    }
+    return () => clearInterval(timer);
+  }, [activeStory]);
 
   useEffect(() => {
     const loadStories = async () => {
@@ -135,19 +157,41 @@ const StoriesBar = () => {
       </section>
 
       {activeStory && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black bg-opacity-80">
-          <div className="relative max-w-md w-full mx-4 bg-black rounded-2xl overflow-hidden">
-            <button
-              type="button"
-              onClick={() => setActiveStory(null)}
-              className="absolute top-3 right-3 text-white/80 hover:text-white"
-            >
-              ✕
-            </button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 transition-opacity duration-300">
+          <div className="relative max-w-md w-full h-[80vh] mx-4 flex flex-col items-center justify-center">
+            {/* Top Bar with Progress */}
+            <div className="absolute top-4 left-0 right-0 px-4 z-10">
+              <div className="h-1 w-full bg-gray-600 rounded-full overflow-hidden mb-4">
+                <div
+                  className="h-full bg-white transition-all duration-100 ease-linear"
+                  style={{ width: `${progress}%` }}
+                />
+              </div>
+              <div className="flex items-center justify-between text-white">
+                <div className="flex items-center">
+                  <img
+                    className="h-8 w-8 rounded-full mr-3 object-cover border border-white"
+                    src={activeStory.avatarUrl || `/images/avatars/${activeStory.username}.jpg`}
+                    alt={activeStory.username}
+                  />
+                  <span className="font-bold">{activeStory.username || 'Story'}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveStory(null)}
+                  className="text-white bg-black/20 hover:bg-black/40 rounded-full p-1 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
             <img
               src={activeStory.imageSrc}
               alt="story"
-              className="w-full max-h-[80vh] object-contain bg-black"
+              className="w-full h-full object-contain"
             />
           </div>
         </div>

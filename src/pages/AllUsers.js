@@ -12,7 +12,7 @@ const AllUsers = () => {
 
   useEffect(() => {
     document.title = 'All Users - Instagram';
-    
+
     async function getAllUsers() {
       try {
         setLoading(true);
@@ -68,7 +68,7 @@ const AllUsers = () => {
                 <div className='flex items-center'>
                   <img
                     className='rounded-full h-12 w-12 mr-4 object-cover'
-                    src={u.avatar || `/images/avatars/${u.username}.jpg`}
+                    src={u.avatarUrl || `/images/avatars/${u.username}.jpg`}
                     alt={`${u.username} avatar`}
                     onError={(e) => {
                       e.target.src = '/images/avatars/default.png';
@@ -82,8 +82,8 @@ const AllUsers = () => {
                     </p>
                   </div>
                 </div>
-                <Link 
-                  className='bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors' 
+                <Link
+                  className='bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition-colors'
                   to={`/p/${u.username}`}
                 >
                   View Profile

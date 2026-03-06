@@ -1,63 +1,75 @@
-import React from "react";
+import React, { useState } from "react";
 import Skeleton from "react-loading-skeleton";
 import PropTypes from "prop-types";
+import PostModal from "./PostModal";
 
 const Photos = ({ photos }) => {
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+
+  const handleOpenPhoto = (photo) => {
+    setSelectedPhoto(photo);
+  };
+
+  const handleClosePhoto = () => {
+    setSelectedPhoto(null);
+  };
+
   return (
     <div className='h-16 border-t border-gray-primary mt-12 pt-4'>
       <div className='grid grid-cols-3 gap-8 mt-4 mb-12'>
         {!photos
           ? new Array(12)
-              .fill(0)
-              .map((_, i) => <Skeleton key={i} width={320} height={400} />)
+            .fill(0)
+            .map((_, i) => <Skeleton key={i} width={320} height={400} />)
           : photos.length > 0
-          ? photos.map((photo) => (
-              <div key={photo.docId} className='relative group'>
-                <img src={photo.imageSrc} alt={photo.caption} />
-                <div className='absolute bottom-0 left-0 bg-gray-200 z-10 w-full justify-evenly items-center h-full bg-black-faded group-hover:flex hidden'>
-                  <p className='flex items-center text-white font-bold'>
+            ? photos.map((photo) => (
+              <div
+                key={photo.docId}
+                className='relative group cursor-pointer aspect-square bg-gray-200 dark:bg-gray-800 rounded-sm overflow-hidden'
+                onClick={() => handleOpenPhoto(photo)}
+              >
+                <img
+                  src={photo.imageSrc}
+                  alt={photo.caption}
+                  className="w-full h-full object-cover group-hover:opacity-75 transition-opacity"
+                />
+                <div className='absolute inset-0 bg-black/40 z-10 flex justify-evenly items-center opacity-0 group-hover:opacity-100 transition-opacity duration-200'>
+                  <p className='flex items-center text-white font-bold text-lg'>
                     <svg
-                      className='w-8 mr-4'
+                      className='w-7 mr-2 fill-current'
                       xmlns='http://www.w3.org/2000/svg'
-                      fill='none'
                       viewBox='0 0 24 24'
-                      stroke-width='1.5'
-                      stroke='currentColor'
                     >
-                      <path
-                        stroke-linecap='round'
-                        stroke-linejoin='round'
-                        d='M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12Z'
-                      />
+                      <path d='M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z' />
                     </svg>
-                    {photo.likes.length}
+                    {photo.likes?.length || 0}
                   </p>
-                  <p className='flex items-center text-white font-bold'>
+                  <p className='flex items-center text-white font-bold text-lg'>
                     <svg
-                      className='w-8 mr-4'
+                      className='w-7 mr-2 fill-current'
                       xmlns='http://www.w3.org/2000/svg'
-                      fill='none'
                       viewBox='0 0 24 24'
-                      stroke-width='1.5'
-                      stroke='currentColor'
                     >
-                      <path
-                        stroke-linecap='round'
-                        stroke-linejoin='round'
-                        d='M2.25 12.76c0 1.6 1.123 2.994 2.707 3.227 1.068.157 2.148.279 3.238.364.466.037.893.281 1.153.671L12 21l2.652-3.978c.26-.39.687-.634 1.153-.67 1.09-.086 2.17-.208 3.238-.365 1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z'
-                      />
+                      <path d='M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2v10z' />
                     </svg>
-                    {photo.comments.length}
+                    {photo.comments?.length || 0}
                   </p>
                 </div>
               </div>
             ))
-          : null}
+            : null}
       </div>
       {!photos ||
         (photos.length === 0 && (
-          <p className='text-center text-2xl'>No posts Yet</p>
+          <p className='text-center text-2xl py-12 text-gray-400'>No posts yet</p>
         ))}
+
+      {selectedPhoto && (
+        <PostModal
+          photo={selectedPhoto}
+          onClose={handleClosePhoto}
+        />
+      )}
     </div>
   );
 };

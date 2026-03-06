@@ -21,11 +21,11 @@ const EditProfile = () => {
 
   useEffect(() => {
     document.title = 'Edit Profile - Instagram';
-    
+
     if (userData && userData.username) {
       setFullName(userData.fullName || '');
       setBio(userData.bio || '');
-      setAvatarPreview(`/images/avatars/${userData.username}.jpg`);
+      setAvatarPreview(userData.avatarUrl || `/images/avatars/${userData.username}.jpg`);
     }
   }, [userData]);
 
@@ -34,7 +34,7 @@ const EditProfile = () => {
     if (file) {
       setAvatarFile(file);
       setError('');
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onload = (e) => setAvatarPreview(e.target.result);
@@ -62,7 +62,7 @@ const EditProfile = () => {
 
       // Update user profile in Firestore
       await updateUserProfile(userData.docId, updates);
-      
+
       setSuccess('Profile updated successfully!');
       setTimeout(() => {
         navigate(`/p/${userData.username}`);
@@ -100,7 +100,7 @@ const EditProfile = () => {
       <div className='mx-auto max-w-screen-lg p-4'>
         <div className='bg-white border border-gray-primary rounded p-6'>
           <h1 className='text-2xl font-bold mb-6'>Edit Profile</h1>
-          
+
           <form onSubmit={handleSubmit}>
             <div className='mb-6'>
               <label className='block text-sm font-medium text-gray-700 mb-2'>
@@ -191,15 +191,14 @@ const EditProfile = () => {
               <button
                 type='submit'
                 disabled={loading}
-                className={`px-6 py-2 rounded font-bold ${
-                  loading
+                className={`px-6 py-2 rounded font-bold ${loading
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-blue-medium text-white hover:bg-blue-500'
-                }`}
+                  }`}
               >
                 {loading ? 'Updating...' : 'Update Profile'}
               </button>
-              
+
               <button
                 type='button'
                 onClick={() => navigate(`/p/${userData.username}`)}
