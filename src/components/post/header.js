@@ -1,15 +1,13 @@
 import React, { useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { DEFAULT_IMAGE_PATH } from "../../constants/paths";
 import { deletePhoto } from "../../services/firebase";
 import UserContext from "../../context/user";
-import * as ROUTES from "../../constants/routes";
 
 const Header = ({ username, avatarUrl, docId, userId }) => {
   const { user } = useContext(UserContext);
   const isOwner = user?.uid === userId;
-  const navigate = useNavigate();
 
   const handleDelete = async () => {
     if (window.confirm('Are you sure you want to delete this post?')) {

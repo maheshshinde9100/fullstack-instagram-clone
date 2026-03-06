@@ -5,7 +5,6 @@ import UserContext from '../context/user';
 import useUser from '../hooks/use-user';
 import { updateUserProfile, uploadAvatar } from '../services/firebase';
 import { DEFAULT_IMAGE_PATH } from '../constants/paths';
-import * as ROUTES from '../constants/routes';
 
 const EditProfile = () => {
   const navigate = useNavigate();
@@ -192,8 +191,8 @@ const EditProfile = () => {
                 type='submit'
                 disabled={loading}
                 className={`px-6 py-2 rounded font-bold ${loading
-                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                    : 'bg-blue-medium text-white hover:bg-blue-500'
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-blue-medium text-white hover:bg-blue-500'
                   }`}
               >
                 {loading ? 'Updating...' : 'Update Profile'}

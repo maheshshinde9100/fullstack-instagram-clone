@@ -1,7 +1,6 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import FirebaseContext from '../context/firebase';
 import UserContext from '../context/user';
 import { uploadPhoto, addPhotoToFirestore } from '../services/firebase';
 import * as ROUTES from '../constants/routes';
@@ -24,7 +23,7 @@ const Upload = () => {
     if (selectedFile) {
       setFile(selectedFile);
       setError('');
-      
+
       // Create preview
       const reader = new FileReader();
       reader.onload = (e) => setPreview(e.target.result);
@@ -34,7 +33,7 @@ const Upload = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!user?.uid) {
       setError('You must be logged in to upload a photo.');
       return;
@@ -44,7 +43,7 @@ const Upload = () => {
       setError('Please select a photo');
       return;
     }
-    
+
     if (!caption.trim()) {
       setError('Please add a caption');
       return;
@@ -56,7 +55,7 @@ const Upload = () => {
     try {
       // Upload photo to Firebase Storage
       const imageSrc = await uploadPhoto(file, user.uid);
-      
+
       // Add photo data to Firestore
       const photoData = {
         userId: user.uid,
@@ -66,9 +65,9 @@ const Upload = () => {
         likes: [],
         comments: []
       };
-      
+
       await addPhotoToFirestore(photoData);
-      
+
       // Navigate back to dashboard
       navigate(ROUTES.DASHBOARD);
     } catch (error) {
@@ -93,7 +92,7 @@ const Upload = () => {
       <div className='mx-auto max-w-screen-lg p-4'>
         <div className='bg-white border border-gray-primary rounded p-6'>
           <h1 className='text-2xl font-bold mb-6'>Upload Photo</h1>
-          
+
           <form onSubmit={handleSubmit}>
             <div className='mb-4'>
               <label className='block text-sm font-medium text-gray-700 mb-2'>
@@ -142,15 +141,14 @@ const Upload = () => {
               <button
                 type='submit'
                 disabled={uploading || !file || !caption.trim()}
-                className={`px-6 py-2 rounded font-bold ${
-                  uploading || !file || !caption.trim()
+                className={`px-6 py-2 rounded font-bold ${uploading || !file || !caption.trim()
                     ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
                     : 'bg-blue-medium text-white hover:bg-blue-500'
-                }`}
+                  }`}
               >
                 {uploading ? 'Uploading...' : 'Upload'}
               </button>
-              
+
               <button
                 type='button'
                 onClick={() => navigate(ROUTES.DASHBOARD)}

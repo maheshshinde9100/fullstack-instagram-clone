@@ -4,6 +4,7 @@ import * as ROUTES from "./constants/routes";
 import useAuthListener from './hooks/use-auth-listener';
 import UserContext from './context/user';
 import { DarkModeProvider } from './context/dark-mode';
+import MobileNav from './components/MobileNav';
 
 import ProtectedRoute from './helpers/protected-routes';
 import IsUserLoggedIn from './helpers/is-user-logged-in';
@@ -18,8 +19,6 @@ const Upload = lazy(() => import('./pages/Upload'));
 const EditProfile = lazy(() => import('./pages/EditProfile'));
 const AllUsers = lazy(() => import('./pages/AllUsers'));
 const Direct = lazy(() => import('./pages/Direct'));
-
-import MobileNav from './components/MobileNav';
 
 function App() {
   const user = useAuthListener();
