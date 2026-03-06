@@ -11,93 +11,105 @@ import IsUserLoggedIn from './helpers/is-user-logged-in';
 const Login = lazy(() => import('./pages/Login'));
 const Signup = lazy(() => import('./pages/sign-up'));
 const NotFound = lazy(() => import('./pages/NotFound'));
-const Dashboard = lazy(()=> import('./pages/Dashboard'));
-const Profile = lazy(()=> import('./pages/profile'));
-const Search = lazy(()=> import('./pages/Search'));
-const Upload = lazy(()=> import('./pages/Upload'));
-const EditProfile = lazy(()=> import('./pages/EditProfile'));
-const AllUsers = lazy(()=> import('./pages/AllUsers'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Profile = lazy(() => import('./pages/profile'));
+const Search = lazy(() => import('./pages/Search'));
+const Upload = lazy(() => import('./pages/Upload'));
+const EditProfile = lazy(() => import('./pages/EditProfile'));
+const AllUsers = lazy(() => import('./pages/AllUsers'));
+const Direct = lazy(() => import('./pages/Direct'));
+
+import MobileNav from './components/MobileNav';
 
 function App() {
-    const user = useAuthListener();
+  const user = useAuthListener();
 
-    return (
-        <DarkModeProvider>
-            <UserContext.Provider value={{ user }}>
-                <Router>
-                    <Suspense fallback={<p>Loading...</p>}>
-                        <Routes>
-                        {/* <Route path={ROUTES.LOGIN} element={<Login />} />
+  return (
+    <DarkModeProvider>
+      <UserContext.Provider value={{ user }}>
+        <Router>
+          <Suspense fallback={<p>Loading...</p>}>
+            <Routes>
+              {/* <Route path={ROUTES.LOGIN} element={<Login />} />
                         <Route path={ROUTES.SIGN_UP} element={<Signup />} />
                         <Route path={ROUTES.DASHBOARD} element={<Dashboard />} /> */}
 
-<Route
-              path={ROUTES.LOGIN}
-              element={
-                <IsUserLoggedIn user={user} loggedInPath={ROUTES.DASHBOARD}>
-                  <Login />
-                </IsUserLoggedIn>
-              }
-            />
+              <Route
+                path={ROUTES.LOGIN}
+                element={
+                  <IsUserLoggedIn user={user} loggedInPath={ROUTES.DASHBOARD}>
+                    <Login />
+                  </IsUserLoggedIn>
+                }
+              />
 
-            <Route
-              path={ROUTES.SIGN_UP}
-              element={
-                <IsUserLoggedIn user={user} loggedInPath={ROUTES.DASHBOARD}>
-                  <Signup />
-                </IsUserLoggedIn>
-              }
-            />
-            <Route
-              path={ROUTES.DASHBOARD}
-              element={
-                <ProtectedRoute user={user}>
-                  <Dashboard />
-                </ProtectedRoute>
-              }
+              <Route
+                path={ROUTES.SIGN_UP}
+                element={
+                  <IsUserLoggedIn user={user} loggedInPath={ROUTES.DASHBOARD}>
+                    <Signup />
+                  </IsUserLoggedIn>
+                }
               />
               <Route
-              path={ROUTES.SEARCH}
-              element={
-                <ProtectedRoute user={user}>
-                  <Search />
-                </ProtectedRoute>
-              }
+                path={ROUTES.DASHBOARD}
+                element={
+                  <ProtectedRoute user={user}>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
               />
               <Route
-              path={ROUTES.UPLOAD}
-              element={
-                <ProtectedRoute user={user}>
-                  <Upload />
-                </ProtectedRoute>
-              }
+                path={ROUTES.SEARCH}
+                element={
+                  <ProtectedRoute user={user}>
+                    <Search />
+                  </ProtectedRoute>
+                }
               />
               <Route
-              path={ROUTES.EDIT_PROFILE}
-              element={
-                <ProtectedRoute user={user}>
-                  <EditProfile />
-                </ProtectedRoute>
-              }
+                path={ROUTES.UPLOAD}
+                element={
+                  <ProtectedRoute user={user}>
+                    <Upload />
+                  </ProtectedRoute>
+                }
               />
               <Route
-              path={ROUTES.ALL_USERS}
-              element={
-                <ProtectedRoute user={user}>
-                  <AllUsers />
-                </ProtectedRoute>
-              }
+                path={ROUTES.EDIT_PROFILE}
+                element={
+                  <ProtectedRoute user={user}>
+                    <EditProfile />
+                  </ProtectedRoute>
+                }
               />
               <Route
-              path={ROUTES.PROFILE} element={<Profile/>}
+                path={ROUTES.ALL_USERS}
+                element={
+                  <ProtectedRoute user={user}>
+                    <AllUsers />
+                  </ProtectedRoute>
+                }
               />
-                        <Route path='*' element={<NotFound />} />
-                        </Routes>
-                    </Suspense>
-                </Router>
-            </UserContext.Provider>
-        </DarkModeProvider>
-    );
+              <Route
+                path={ROUTES.DIRECT}
+                element={
+                  <ProtectedRoute user={user}>
+                    <Direct />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path={ROUTES.PROFILE} element={<Profile />}
+              />
+              <Route path='*' element={<NotFound />} />
+            </Routes>
+            <MobileNav />
+          </Suspense>
+        </Router>
+      </UserContext.Provider>
+    </DarkModeProvider>
+  );
 
 }
 export default App;

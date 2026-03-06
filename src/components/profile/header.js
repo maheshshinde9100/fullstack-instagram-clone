@@ -7,6 +7,7 @@ import UserContext from "../../context/user";
 import { isUserFollowingProfile, toggleFollow } from "../../services/firebase";
 import { DEFAULT_IMAGE_PATH } from "../../constants/paths";
 import * as ROUTES from "../../constants/routes";
+import UserListModal from "./UserListModal";
 
 const Header = ({
   photosCount,
@@ -15,8 +16,8 @@ const Header = ({
     userId: profileUserId,
     fullName,
     bio,
-    followers,
-    following,
+    followers = [],
+    following = [],
     username: profileUsername,
     avatarUrl,
   },
@@ -26,6 +27,8 @@ const Header = ({
   const { user: loggedInUser } = useContext(UserContext);
   const { user } = useUser(loggedInUser?.uid);
   const [isFollowingProfile, setIsFollowingProfile] = useState(null);
+  const [activeModal, setActiveModal] = useState(null); // 'followers' or 'following'
+
   const activeBtnFollow = user?.username && user?.username !== profileUsername;
   const isOwnProfile = user?.username === profileUsername;
 
@@ -57,11 +60,11 @@ const Header = ({
   }, [user?.username, profileUserId]);
 
   return (
-    <div className='grid grid-cols-3 gap-4 justify-between mx-auto max-w-screen-lg'>
-      <div className='container flex justify-center items-center'>
+    <div className='grid grid-cols-3 gap-4 justify-between mx-auto max-w-screen-lg mb-4 p-4'>
+      <div className='container flex justify-center items-start'>
         {profileUsername ? (
           <img
-            className='rounded-full h-40 w-40 flex object-cover'
+            className='rounded-full h-16 w-16 md:h-40 md:w-40 flex object-cover border border-gray-primary dark:border-gray-700 shadow-sm'
             alt={`${fullName} profile pic`}
             src={avatarUrl || `/images/avatars/${profileUsername}.jpg`}
             onError={(e) => (e.target.src = DEFAULT_IMAGE_PATH)}
@@ -70,63 +73,72 @@ const Header = ({
           <Skeleton circle height={150} width={150} count={1} />
         )}
       </div>
-      <div className='flex items-center jsutify-center flex-col col-span-2'>
-        <div className='container flex items-center'>
-          <p className='text-2xl mr-4'>{profileUsername}</p>
+      <div className='flex items-start justify-center flex-col col-span-2'>
+        <div className='container flex items-center mb-4'>
+          <p className='text-2xl mr-4 text-gray-900 dark:text-gray-100 font-light'>{profileUsername}</p>
           {isOwnProfile ? (
             <Link
               to={ROUTES.EDIT_PROFILE}
-              className='bg-gray-200 font-bold text-sm rounded text-gray-700 px-4 py-2 hover:bg-gray-300'
+              className='bg-white dark:bg-gray-800 border border-gray-primary dark:border-gray-700 font-bold text-sm rounded text-gray-900 dark:text-gray-100 px-4 py-1.5 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors'
             >
               Edit Profile
             </Link>
-          ) : activeBtnFollow && isFollowingProfile === null ? (
-            <Skeleton count={1} width={80} height={32} />
-          ) : (
-            activeBtnFollow && (
-              <button
-                className='bg-blue-medium font-bold text-sm rounded text-white w-20 h-8'
-                type='button'
-                onClick={handleToggleFollow}
-                onKeyDown={(event) => {
-                  handleToggleFollow();
-                }}
-              >
-                {isFollowingProfile ? "unfollow" : "Follow"}
-              </button>
-            )
-          )}
+          ) : activeBtnFollow && (
+            <button
+              className={`font-bold text-sm rounded w-24 h-8 transition-colors ${isFollowingProfile
+                  ? "bg-gray-200 text-gray-900 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-100"
+                  : "bg-blue-medium text-white hover:bg-blue-600"
+                }`}
+              type='button'
+              onClick={handleToggleFollow}
+            >
+              {isFollowingProfile === null ? <Skeleton width={50} /> : isFollowingProfile ? "Following" : "Follow"}
+            </button>
+          )
+          }
         </div>
-        <div className='container flex mt-4'>
+        <div className='container flex mt-2'>
           {!followers && !following ? (
-            <Skeleton count={1} width={677} height={243} />
+            <Skeleton count={1} width={200} height={20} />
           ) : (
             <>
-              <p className='mr-10'>
-                <span className='font-bold'>{photosCount} photos</span>
+              <p className='mr-10 text-gray-900 dark:text-gray-100'>
+                <span className='font-bold'>{photosCount}</span> posts
               </p>
-              <p className='mr-10'>
-                <span className='font-bold'>{followerCount}</span>
-                {` `} {followerCount === 1 ? "follower" : "followers"}
-              </p>
-              <p className='mr-10'>
-                <span className='font-bold'>{following?.length}</span>
-                {` `} following
-              </p>
+              <button
+                onClick={() => setActiveModal('followers')}
+                className='mr-10 text-gray-900 dark:text-gray-100 hover:opacity-75'
+              >
+                <span className='font-bold'>{followerCount}</span> {followerCount === 1 ? "follower" : "followers"}
+              </button>
+              <button
+                onClick={() => setActiveModal('following')}
+                className='mr-10 text-gray-900 dark:text-gray-100 hover:opacity-75'
+              >
+                <span className='font-bold'>{following?.length || 0}</span> following
+              </button>
             </>
           )}
         </div>
         <div className='container mt-4'>
-          <p className='font-medium'>
-            {!fullName ? <Skeleton count={1} height={24} /> : fullName}
+          <p className='font-bold text-gray-900 dark:text-gray-100'>
+            {!fullName ? <Skeleton count={1} height={20} width={150} /> : fullName}
           </p>
           {bio && (
-            <p className='mt-2 text-sm'>
+            <p className='mt-1 text-sm text-gray-900 dark:text-gray-200'>
               {bio}
             </p>
           )}
         </div>
       </div>
+
+      {activeModal && (
+        <UserListModal
+          title={activeModal === 'followers' ? 'Followers' : 'Following'}
+          userIds={activeModal === 'followers' ? followers : following}
+          onClose={() => setActiveModal(null)}
+        />
+      )}
     </div>
   );
 };
@@ -145,5 +157,6 @@ Header.propTypes = {
     username: PropTypes.string,
     followers: PropTypes.array,
     following: PropTypes.array,
+    avatarUrl: PropTypes.string,
   }).isRequired,
 };
