@@ -1,4 +1,4 @@
-import { FieldValue, firebase } from '../lib/firebase';
+import { FieldValue, FieldPath, firebase } from '../lib/firebase';
 
 const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
 const CLOUDINARY_UPLOAD_PRESET_AVATAR = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET_AVATAR;
@@ -182,8 +182,8 @@ export async function getPhotos(userId, following, savedPhotoDocIds = [], lastDo
 
   return {
     photos: validPhotos,
-    lastDoc: result.docs[result.docs.length - 1],
-    hasMore: result.docs.length === limit
+    lastDoc: result.docs.length > 0 ? result.docs[result.docs.length - 1] : null,
+    hasMore: result.docs.length === limit && result.docs.length > 0
   };
 }
 
@@ -333,8 +333,8 @@ export async function getAllPhotos(userId, lastDoc = null, limit = 10) {
 
   return {
     photos: validPhotos,
-    lastDoc: result.docs[result.docs.length - 1],
-    hasMore: result.docs.length === limit
+    lastDoc: result.docs.length > 0 ? result.docs[result.docs.length - 1] : null,
+    hasMore: result.docs.length === limit && result.docs.length > 0
   };
 }
 
@@ -402,10 +402,20 @@ export async function getSavedPhotos(userId, savedPhotoDocIds) {
     return [];
   }
 
+  // Use a fallback for doc ID filtering as FieldPath.documentId() can sometimes be undefined in some environments
+  let queryId = "__name__";
+  try {
+    if (typeof FieldPath !== 'undefined' && FieldPath.documentId) {
+      queryId = FieldPath.documentId();
+    }
+  } catch (e) {
+    console.warn("Failed to get FieldPath.documentId, falling back to special string '__name__'", e);
+  }
+
   const result = await firebase
     .firestore()
     .collection("photos")
-    .where(firebase.firestore.FieldPath.documentId(), "in", savedPhotoDocIds)
+    .where(queryId, "in", savedPhotoDocIds)
     .get();
 
   const savedPhotos = result.docs.map((photo) => ({

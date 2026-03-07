@@ -1,10 +1,12 @@
-import React, { useReducer, useEffect, useState } from "react";
+import React, { useReducer, useEffect, useState, useContext } from "react";
 import PropTypes from "prop-types";
 import Header from "./header";
-import { getUserPhotosByUserId, getSavedPhotos } from "../../services/firebase";
+import { getUserPhotosByUserId, getSavedPhotos, getUserByUserId } from "../../services/firebase";
 import Photos from "./photos";
+import UserContext from "../../context/user";
 
 const Profile = ({ user }) => {
+  const { user: authUser } = useContext(UserContext);
   const reducer = (state, newState) => ({
     ...state,
     ...newState,
@@ -22,6 +24,7 @@ const Profile = ({ user }) => {
   );
 
   const [activeTab, setActiveTab] = useState('POSTS'); // 'POSTS' or 'SAVED'
+  const isMyProfile = authUser?.uid === user?.userId;
 
   useEffect(() => {
     async function getProfileInfoAndPhotos() {
@@ -33,18 +36,27 @@ const Profile = ({ user }) => {
       });
     }
 
-    async function fetchSavedPhotos() {
-      if (user?.saved?.length > 0) {
-        const savedPhotos = await getSavedPhotos(user.userId, user.saved);
-        dispatch({ savedPhotosCollection: savedPhotos });
+    async function fetchSavedPhotosAtProfile() {
+      // For saved photos, we MUST fetch the current logged-in user's full data
+      // to get their up-to-date saved array
+      try {
+        const [fullUserData] = await getUserByUserId(authUser.uid);
+        if (fullUserData?.saved?.length > 0) {
+          const savedPhotos = await getSavedPhotos(authUser.uid, fullUserData.saved);
+          dispatch({ savedPhotosCollection: savedPhotos });
+        }
+      } catch (error) {
+        console.error("Failed to fetch saved photos:", error);
       }
     }
 
     if (user?.userId) {
       getProfileInfoAndPhotos();
-      fetchSavedPhotos();
+      if (isMyProfile) {
+        fetchSavedPhotosAtProfile();
+      }
     }
-  }, [user]);
+  }, [user, isMyProfile, authUser]);
 
   return (
     <>
@@ -59,8 +71,8 @@ const Profile = ({ user }) => {
         <div className="flex justify-center space-x-12">
           <button
             className={`flex items-center space-x-2 py-4 border-t transition-all ${activeTab === 'POSTS'
-                ? 'border-black dark:border-white text-black dark:text-white'
-                : 'border-transparent text-gray-base'
+              ? 'border-black dark:border-white text-black dark:text-white'
+              : 'border-transparent text-gray-base'
               }`}
             onClick={() => setActiveTab('POSTS')}
           >
@@ -70,11 +82,11 @@ const Profile = ({ user }) => {
             <span className="text-xs font-bold tracking-widest">POSTS</span>
           </button>
 
-          {user?.userId === profile.userId && (
+          {isMyProfile && (
             <button
               className={`flex items-center space-x-2 py-4 border-t transition-all ${activeTab === 'SAVED'
-                  ? 'border-black dark:border-white text-black dark:text-white'
-                  : 'border-transparent text-gray-base'
+                ? 'border-black dark:border-white text-black dark:text-white'
+                : 'border-transparent text-gray-base'
                 }`}
               onClick={() => setActiveTab('SAVED')}
             >
