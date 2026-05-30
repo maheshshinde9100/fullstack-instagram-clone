@@ -121,7 +121,7 @@ const EditProfile = () => {
                     disabled={loading}
                   />
                   <p className='text-xs text-gray-500 mt-1'>
-                    JPG, PNG or GIF. Max size 2MB.
+                    JPG, PNG or GIF. Max size 500KB.
                   </p>
                 </div>
               </div>

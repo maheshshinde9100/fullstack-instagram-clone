@@ -2,7 +2,7 @@ import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import UserContext from '../context/user';
-import { uploadPhoto, addPhotoToFirestore } from '../services/firebase';
+import { uploadPhoto, addPhotoToFirestore, getUserPostCount } from '../services/firebase';
 import * as ROUTES from '../constants/routes';
 
 const Upload = () => {
@@ -53,6 +53,12 @@ const Upload = () => {
     setError('');
 
     try {
+      // Check post count
+      const postCount = await getUserPostCount(user.uid);
+      if (postCount >= 5) {
+        throw new Error('You have reached the maximum limit of 5 posts.');
+      }
+
       // Upload photo to Firebase Storage
       const imageSrc = await uploadPhoto(file, user.uid);
 
@@ -76,7 +82,7 @@ const Upload = () => {
         setError('Storage error: Please check Firebase Storage configuration.');
       } else if (error.message.includes('permission')) {
         setError('Permission denied: Please check Firebase Storage rules.');
-      } else if (error.message.includes('size')) {
+      } else if (error.message.includes('size') || error.message.includes('limit')) {
         setError(error.message);
       } else {
         setError(`Upload failed: ${error.message || 'Please try again.'}`);

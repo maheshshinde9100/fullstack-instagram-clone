@@ -137,7 +137,10 @@ export async function updateFollowedUserFollowers(
 }
 
 export async function getPhotos(userId, following, savedPhotoDocIds = [], lastDoc = null, limit = 10) {
-  if (!following || following.length === 0) {
+  // Include the user's own posts plus followed users
+  const userIds = [userId, ...(following || [])];
+  
+  if (userIds.length === 0) {
     return {
       photos: [],
       lastDoc: null,
@@ -148,7 +151,7 @@ export async function getPhotos(userId, following, savedPhotoDocIds = [], lastDo
   let query = firebase
     .firestore()
     .collection("photos")
-    .where("userId", "in", following)
+    .where("userId", "in", userIds)
     .orderBy("dateCreated", "desc")
     .limit(limit);
 
@@ -244,9 +247,9 @@ export async function updateUserProfile(userDocId, updates) {
 
 export async function uploadAvatar(file, userId) {
   try {
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      throw new Error('File size must be less than 5MB');
+    // Validate file size (max 500KB)
+    if (file.size > 500 * 1024) {
+      throw new Error('File size must be less than 500KB');
     }
 
     if (!file.type.startsWith('image/')) {
@@ -264,9 +267,9 @@ export async function uploadAvatar(file, userId) {
 
 export async function uploadPhoto(file, userId) {
   try {
-    // Validate file size (max 10MB for posts)
-    if (file.size > 10 * 1024 * 1024) {
-      throw new Error('File size must be less than 10MB');
+    // Validate file size (max 1MB for posts)
+    if (file.size > 1 * 1024 * 1024) {
+      throw new Error('File size must be less than 1MB');
     }
 
     if (!file.type.startsWith('image/')) {
@@ -280,6 +283,11 @@ export async function uploadPhoto(file, userId) {
     console.error('Photo upload error:', error);
     throw error;
   }
+}
+
+export async function getUserPostCount(userId) {
+  const result = await firebase.firestore().collection('photos').where('userId', '==', userId).get();
+  return result.docs.length;
 }
 
 export async function addPhotoToFirestore(photoData) {

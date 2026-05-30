@@ -29,12 +29,7 @@ const usePhotos = () => {
 
       const [{ following = [], saved = [] }] = userResult;
       
-      if (following.length === 0) {
-        setPhotos([]);
-        setHasMore(false);
-        setLoading(false);
-        return;
-      }
+
 
       const result = await getPhotos(
         userId, 
