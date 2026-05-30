@@ -18,17 +18,17 @@ const Signup = () => {
     const handleSignup = async (event) => {
         event.preventDefault();
         setError('');
-    
+
         const usernameExists = await doesUsernameExist(username);
-    
+
         if (!usernameExists) {
             try {
                 const createdUserResult = await firebase.auth().createUserWithEmailAndPassword(emailAddress, password);
-    
+
                 await createdUserResult.user.updateProfile({
                     displayName: username,
                 });
-    
+
                 // Add new user document in Firestore
                 await firebase.firestore().collection('users').doc(createdUserResult.user.uid).set({
                     userId: createdUserResult.user.uid,
@@ -36,9 +36,11 @@ const Signup = () => {
                     fullName,
                     emailAddress: emailAddress.toLowerCase(),
                     following: [],
+                    followers: [],
+                    saved: [],
                     dateCreated: Date.now()
                 });
-    
+
                 navigate(ROUTES.DASHBOARD);
             } catch (error) {
                 console.error(error);
@@ -53,7 +55,7 @@ const Signup = () => {
         } else {
             setError('Username already exists. Please choose another.');
         }
-    };    
+    };
 
     useEffect(() => {
         document.title = 'Sign Up - Instagram';

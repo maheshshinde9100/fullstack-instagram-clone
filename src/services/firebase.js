@@ -1,4 +1,4 @@
-import { FieldValue, firebase } from '../lib/firebase';
+import { FieldValue, FieldPath, firebase } from '../lib/firebase';
 
 const CLOUDINARY_CLOUD_NAME = process.env.REACT_APP_CLOUDINARY_CLOUD_NAME;
 const CLOUDINARY_UPLOAD_PRESET_AVATAR = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET_AVATAR;
@@ -137,7 +137,10 @@ export async function updateFollowedUserFollowers(
 }
 
 export async function getPhotos(userId, following, savedPhotoDocIds = [], lastDoc = null, limit = 10) {
-  if (!following || following.length === 0) {
+  // Include the user's own posts plus followed users
+  const userIds = [userId, ...(following || [])];
+  
+  if (userIds.length === 0) {
     return {
       photos: [],
       lastDoc: null,
@@ -148,7 +151,7 @@ export async function getPhotos(userId, following, savedPhotoDocIds = [], lastDo
   let query = firebase
     .firestore()
     .collection("photos")
-    .where("userId", "in", following)
+    .where("userId", "in", userIds)
     .orderBy("dateCreated", "desc")
     .limit(limit);
 
@@ -182,8 +185,8 @@ export async function getPhotos(userId, following, savedPhotoDocIds = [], lastDo
 
   return {
     photos: validPhotos,
-    lastDoc: result.docs[result.docs.length - 1],
-    hasMore: result.docs.length === limit
+    lastDoc: result.docs.length > 0 ? result.docs[result.docs.length - 1] : null,
+    hasMore: result.docs.length === limit && result.docs.length > 0
   };
 }
 
@@ -244,9 +247,9 @@ export async function updateUserProfile(userDocId, updates) {
 
 export async function uploadAvatar(file, userId) {
   try {
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      throw new Error('File size must be less than 5MB');
+    // Validate file size (max 500KB)
+    if (file.size > 500 * 1024) {
+      throw new Error('File size must be less than 500KB');
     }
 
     if (!file.type.startsWith('image/')) {
@@ -264,9 +267,9 @@ export async function uploadAvatar(file, userId) {
 
 export async function uploadPhoto(file, userId) {
   try {
-    // Validate file size (max 10MB for posts)
-    if (file.size > 10 * 1024 * 1024) {
-      throw new Error('File size must be less than 10MB');
+    // Validate file size (max 1MB for posts)
+    if (file.size > 1 * 1024 * 1024) {
+      throw new Error('File size must be less than 1MB');
     }
 
     if (!file.type.startsWith('image/')) {
@@ -280,6 +283,11 @@ export async function uploadPhoto(file, userId) {
     console.error('Photo upload error:', error);
     throw error;
   }
+}
+
+export async function getUserPostCount(userId) {
+  const result = await firebase.firestore().collection('photos').where('userId', '==', userId).get();
+  return result.docs.length;
 }
 
 export async function addPhotoToFirestore(photoData) {
@@ -296,13 +304,18 @@ export async function deleteComment(photoDocId, commentToDelete) {
     });
 }
 
-export async function getAllPhotos(userId, limit = 10) {
-  const result = await firebase
+export async function getAllPhotos(userId, lastDoc = null, limit = 10) {
+  let query = firebase
     .firestore()
     .collection("photos")
     .orderBy("dateCreated", "desc")
-    .limit(limit)
-    .get();
+    .limit(limit);
+
+  if (lastDoc) {
+    query = query.startAfter(lastDoc);
+  }
+
+  const result = await query.get();
 
   const allPhotos = result.docs.map((photo) => ({
     ...photo.data(),
@@ -328,8 +341,8 @@ export async function getAllPhotos(userId, limit = 10) {
 
   return {
     photos: validPhotos,
-    lastDoc: result.docs[result.docs.length - 1],
-    hasMore: result.docs.length === limit
+    lastDoc: result.docs.length > 0 ? result.docs[result.docs.length - 1] : null,
+    hasMore: result.docs.length === limit && result.docs.length > 0
   };
 }
 
@@ -392,3 +405,50 @@ export async function getStoriesForUserFeed(userId, limit = 50) {
   return stories;
 }
 
+export async function getSavedPhotos(userId, savedPhotoDocIds) {
+  if (!savedPhotoDocIds || savedPhotoDocIds.length === 0) {
+    return [];
+  }
+
+  // Use a fallback for doc ID filtering as FieldPath.documentId() can sometimes be undefined in some environments
+  let queryId = "__name__";
+  try {
+    if (typeof FieldPath !== 'undefined' && FieldPath.documentId) {
+      queryId = FieldPath.documentId();
+    }
+  } catch (e) {
+    console.warn("Failed to get FieldPath.documentId, falling back to special string '__name__'", e);
+  }
+
+  const result = await firebase
+    .firestore()
+    .collection("photos")
+    .where(queryId, "in", savedPhotoDocIds)
+    .get();
+
+  const savedPhotos = result.docs.map((photo) => ({
+    ...photo.data(),
+    docId: photo.id,
+  }));
+
+  const photosWithUserDetails = await Promise.all(
+    savedPhotos.map(async (photo) => {
+      let userLikedPhoto = false;
+      if (photo.likes.includes(userId)) {
+        userLikedPhoto = true;
+      }
+      const user = await getUserByUserId(photo.userId);
+      if (!user || user.length === 0) {
+        return null;
+      }
+      const { username, avatarUrl } = user[0];
+      return { username, avatarUrl, ...photo, userLikedPhoto, userSavedPhoto: true };
+    })
+  );
+
+  return photosWithUserDetails.filter(photo => photo !== null);
+}
+
+export async function deletePhoto(photoDocId) {
+  return firebase.firestore().collection('photos').doc(photoDocId).delete();
+}
